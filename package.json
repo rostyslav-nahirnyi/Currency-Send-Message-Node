@@ -1,0 +1,21 @@
+{
+  "name": "node-red-contrib-send-message",
+  "version": "1.0.0",
+  "description": "Node to send messages to different types of messengers.",
+  "main": "send-message.js",
+  "scripts": {
+    "test": "send-message"
+  },
+  "node-red": {
+    "nodes": {
+      "send-message": "send-message.js"
+    }
+  },
+  "keywords": [
+    "send-message",
+    "message",
+    "messenger"
+  ],
+  "author": "Rostyslav N.",
+  "license": "ISC"
+}

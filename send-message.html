@@ -1,0 +1,26 @@
+<script type="text/javascript">
+  RED.nodes.registerType("send-message", {
+    category: 'function',
+    color: '#12e62b',
+    defaults: {
+      name: {value:""}
+    },
+    inputs:1,
+    outputs:1,
+    icon: "file.png",
+    label: function() {
+        return this.name || "send-message";
+    }
+  });
+</script>
+
+<script type="text/html" data-template-name="send-message">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name">
+  </div>
+</script>
+
+<script type="text/html" data-help-name="send-message">
+  <p>Node for sending messages to different types of messengers.</p>
+</script>
