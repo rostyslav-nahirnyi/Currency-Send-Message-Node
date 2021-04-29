@@ -1,13 +1,13 @@
 <script type="text/javascript">
   RED.nodes.registerType("send-message", {
-    category: 'function',
+    category: 'network',
     color: '#12e62b',
     defaults: {
-      name: {value:""}
+      name: { value: "" }
     },
     inputs:1,
     outputs:1,
-    icon: "file.png",
+    icon: "white-globe.svg",
     label: function() {
         return this.name || "send-message";
     }
@@ -22,5 +22,7 @@
 </script>
 
 <script type="text/html" data-help-name="send-message">
-  <p>Node for sending messages to different types of messengers.</p>
+  <p>Node for sending messages to different types of messengers.
+  Please specify 'MONGO_URL', 'FB_PAGE_TOKEN', 'VB_TOKEN', 'TG_TOKEN' in envs.
+  Pass 'messenger_type', 'template_id', 'recipient_id' in 'msg' object for this node.</p>
 </script>
