@@ -5,15 +5,41 @@
     defaults: {
       name: { value: "" },
       messenger_type: { value: "", required: true },
+      messenger_type_type: { value: "str" },
       templateId: { value: "", required: true  },
+      templateId_type: { value: "str" },
       language: { value: "", required: true  },
+      language_type: { value: "str" },
       recipient_id: { value: "", required: true  },
+      recipient_id_type: { value: "str" }
     },
     inputs:1,
     outputs:1,
     icon: "white-globe.svg",
     label: function() {
         return this.name || "send-message";
+    },
+    oneditprepare: function() {
+      $("#node-input-messenger_type").typedInput({
+        default: "str",
+        types: ["str", "msg"],
+        typeField: $("#node-input-messenger_type_type"),
+      });
+      $("#node-input-templateId").typedInput({
+        default: "str",
+        types: ["str", "msg"],
+        typeField: $("#node-input-templateId_type"),
+      });
+      $("#node-input-language").typedInput({
+        default: "str",
+        types: ["str", "msg"],
+        typeField: $("#node-input-language_type"),
+      });
+      $("#node-input-recipient_id").typedInput({
+        default: "str",
+        types: ["str", "msg"],
+        typeField: $("#node-input-recipient_id_type"),
+      });
     }
   });
 </script>
@@ -26,18 +52,22 @@
   <div class="form-row">
     <label for="node-input-messenger_type"><i class="fa fa-tag"></i> Messenger Type</label>
     <input type="text" id="node-input-messenger_type" placeholder="Messenger Type">
+    <input type="hidden" id="node-input-messenger_type_type" />
   </div>
   <div class="form-row">
     <label for="node-input-templateId"><i class="fa fa-tag"></i> Template ID</label>
     <input type="text" id="node-input-templateId" placeholder="Template ID">
+    <input type="hidden" id="node-input-templateId_type" />
   </div>
   <div class="form-row">
     <label for="node-input-language"><i class="fa fa-tag"></i> Language</label>
     <input type="text" id="node-input-language" placeholder="Language">
+    <input type="hidden" id="node-input-language_type" />
   </div>
   <div class="form-row">
     <label for="node-input-recipient_id"><i class="fa fa-tag"></i> Recipient ID</label>
     <input type="text" id="node-input-recipient_id" placeholder="Recipient ID">
+    <input type="hidden" id="node-input-recipient_id_type" />
   </div>
 </script>
 

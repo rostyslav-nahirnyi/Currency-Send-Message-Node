@@ -42,6 +42,11 @@ module.exports = function(RED) {
       //if 'recipient_id' var doesn't exist
       if (!config.recipient_id) return node.error("Please speсify recipient_id.");
 
+      if (config.messenger_type_type == "msg") config.messenger_type = msg[config.messenger_type];
+      if (config.templateId_type == "msg") config.templateId = msg[config.templateId];
+      if (config.language_type == "msg") config.language = msg[config.language];
+      if (config.recipient_id_type == "msg") config.recipient_id = msg[config.recipient_id];
+
       //get message
       axios
         .get(`${process.env.API_URL}/messages?templateId=${config.templateId}&messenger_type=${config.messenger_type}`)
