@@ -19,7 +19,6 @@
   "author": "Rostyslav N.",
   "license": "ISC",
   "dependencies": {
-    "axios": "^0.21.1",
-    "mongodb": "^3.6.6"
+    "axios": "^0.21.1"
   }
 }

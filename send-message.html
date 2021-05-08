@@ -3,7 +3,11 @@
     category: 'network',
     color: '#12e62b',
     defaults: {
-      name: { value: "" }
+      name: { value: "" },
+      messenger_type: { value: "", required: true },
+      templateId: { value: "", required: true  },
+      language: { value: "", required: true  },
+      recipient_id: { value: "", required: true  },
     },
     inputs:1,
     outputs:1,
@@ -19,10 +23,26 @@
     <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
     <input type="text" id="node-input-name" placeholder="Name">
   </div>
+  <div class="form-row">
+    <label for="node-input-messenger_type"><i class="fa fa-tag"></i> Messenger Type</label>
+    <input type="text" id="node-input-messenger_type" placeholder="Messenger Type">
+  </div>
+  <div class="form-row">
+    <label for="node-input-templateId"><i class="fa fa-tag"></i> Template ID</label>
+    <input type="text" id="node-input-templateId" placeholder="Template ID">
+  </div>
+  <div class="form-row">
+    <label for="node-input-language"><i class="fa fa-tag"></i> Language</label>
+    <input type="text" id="node-input-language" placeholder="Language">
+  </div>
+  <div class="form-row">
+    <label for="node-input-recipient_id"><i class="fa fa-tag"></i> Recipient ID</label>
+    <input type="text" id="node-input-recipient_id" placeholder="Recipient ID">
+  </div>
 </script>
 
 <script type="text/html" data-help-name="send-message">
   <p>Node for sending messages to different types of messengers.
-  Please specify 'MONGO_URL', 'FB_PAGE_TOKEN', 'VB_TOKEN', 'TG_TOKEN' in envs.
-  Pass 'messenger_type', 'template_id', 'recipient_id' in 'msg' object for this node.</p>
+  Please specify 'FB_PAGE_TOKEN', 'VB_TOKEN', 'VB_BOT_NAME', 'VB_AVATAR_URL', 'TG_TOKEN', 'API_URL' in envs.
+  Specify 'messenger_type', 'templateId', 'recipient_id', 'language'.</p>
 </script>

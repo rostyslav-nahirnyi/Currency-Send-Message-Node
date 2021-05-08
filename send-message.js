@@ -3,15 +3,9 @@ module.exports = function(RED) {
     RED.nodes.createNode(this, config);
     var node = this;
 
-    //mongodb
-    const MongoClient = require('mongodb').MongoClient;
     //for making requests
     const axios = require('axios');
 
-    //if 'MONGO_URL' var doesn't exist in envs
-    if (!process.env.MONGO_URL) {
-      return node.error("Please add url (for mongodb connecting) variable (as MONGO_URL) to envs!");
-    }
     //if 'FB_PAGE_TOKEN' var doesn't exist in envs
     if (!process.env.FB_PAGE_TOKEN) {
       return node.error("Please add Facebook page token (for gettings access) variable (as FB_PAGE_TOKEN) to envs!");
@@ -20,82 +14,105 @@ module.exports = function(RED) {
     if (!process.env.VB_TOKEN) {
       return node.error("Please add Viber token (for gettings access) variable (as VB_TOKEN) to envs!");
     }
+    //if 'VB_BOT_NAME' var doesn't exist in envs
+    if (!process.env.VB_BOT_NAME) {
+      return node.error("Please add Viber bot name variable (as VB_BOT_NAME) to envs!");
+    }
+    //if 'VB_AVATAR_URL' var doesn't exist in envs
+    if (!process.env.VB_AVATAR_URL) {
+      return node.error("Please add url of avatar of Viber bot variable (as VB_AVATAR_URL) to envs!");
+    }
     //if 'TG_TOKEN' var doesn't exist in envs
     if (!process.env.TG_TOKEN) {
       return node.error("Please add Telegram token (for gettings access) variable (as TG_TOKEN) to envs!");
     }
-
-    //mongodb client
-    const mongoClient = new MongoClient(process.env.MONGO_URL, { useUnifiedTopology: true });
+    //if 'API_URL' var doesn't exist in envs
+    if (!process.env.API_URL) {
+      return node.error("Please add api url variable (as API_URL) to envs!");
+    }
 
     //node 'input' event handler
     node.on('input', function (msg) {
-      mongoClient.connect((err, client) => {
-        //if mongodb error
-        if (err) return node.error("MongoDBError: " + err);
-        //if 'messenger_type' var doesn't exist
-        if (!msg.messenger_type) return node.error("Please speсify messenger_type to msg.");
-        //if 'template_id' var doesn't exist
-        if (!msg.template_id) return node.error("Please speсify template_id to msg.");
-        //if 'recipient_id' var doesn't exist
-        if (!msg.recipient_id) return node.error("Please speсify recipient_id to msg.");
+      //if 'messenger_type' var doesn't exist
+      if (!config.messenger_type) return node.error("Please speсify messenger_type.");
+      //if 'templateId' var doesn't exist
+      if (!config.templateId) return node.error("Please speсify templateId.");
+      //if 'language' var doesn't exist
+      if (!config.language) return node.error("Please speсify language.");
+      //if 'recipient_id' var doesn't exist
+      if (!config.recipient_id) return node.error("Please speсify recipient_id.");
 
-        //mongodb getting template
-        const data = { templateId: msg.template_id };
-        const db = client.db("messages_db");
+      //get message
+      axios
+        .get(`${process.env.API_URL}/messages?templateId=${config.templateId}&messenger_type=${config.messenger_type}`)
+        .then((response) => {
+          let message = JSON.stringify(response.data.json);
 
-        db.collection(msg.messenger_type + '-messages').findOne(data, (err, messageObj) => {
-          let message = messageObj.json;
+          //set template vars
+          if (!response.data.hasOwnProperty(config.language)) return node.error("Template does not support this language.");
+          let message_vars = msg.template_vars ? Object.assign(msg.template_vars, response.data[config.language]) : response.data[config.language];
 
-          //if mongodb error
-          if (err) { node.error("MongoDBError: " + err); }
-          else {
-            //https request to send message
+          for (let key in message_vars) {
+            message = message.replace(new RegExp("{{" + key + "}}", "g"), message_vars[key]);
+          };
 
-            //crating request data
-            if (msg.messenger_type === "fb") {
-              var send_message_url = "https://graph.facebook.com/v10.0/me/messages?access_token=" + process.env.FB_PAGE_TOKEN;
+          message = JSON.parse(message);
 
-              message["messaging_type"] = "RESPONSE";
-              message["recipient"] = { "id": msg.recipient_id };
-            } else if (msg.messenger_type === "vb") {
-              var send_message_url = "https://chatapi.viber.com/pa/send_message";
 
-              message["sender"] = {
-                "name": "CurrencyHelper",
-                "avatar": "https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/99b20742-4dba-46de-864c-4e2fe5fb3f4f/d4hhdbc-10e39559-98ac-42c4-a4b2-7f08c1b799f7.png?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOiIsImlzcyI6InVybjphcHA6Iiwib2JqIjpbW3sicGF0aCI6IlwvZlwvOTliMjA3NDItNGRiYS00NmRlLTg2NGMtNGUyZmU1ZmIzZjRmXC9kNGhoZGJjLTEwZTM5NTU5LTk4YWMtNDJjNC1hNGIyLTdmMDhjMWI3OTlmNy5wbmcifV1dLCJhdWQiOlsidXJuOnNlcnZpY2U6ZmlsZS5kb3dubG9hZCJdfQ.lTo6eNAwsBqWI5k8MSRbnwbdh07MzEElj392ln--qJM"
-              };
-              message["receiver"] = msg.recipient_id;
-            } else if (msg.messenger_type === "tg") {
-              var send_message_url = `https://api.telegram.org/bot${process.env.TG_TOKEN}/sendMessage`;
 
-              message["chat_id"] = msg.recipient_id;
-            }
+          //https request to send message
 
-            //creating request options
-            let headers = {
-              'Content-Type': 'application/json'
+          //crating request data
+          if (config.messenger_type == "fb") {
+            var send_message_url = "https://graph.facebook.com/v10.0/me/messages?access_token=" + process.env.FB_PAGE_TOKEN;
+
+            message["messaging_type"] = "RESPONSE";
+            message["recipient"] = { "id": config.recipient_id };
+          } else if (config.messenger_type == "vb") {
+            var send_message_url = "https://chatapi.viber.com/pa/send_message";
+
+            message["sender"] = {
+              "name": process.env.VB_BOT_NAME,
+              "avatar": process.env.VB_AVATAR_URL
             };
+            message["receiver"] = config.recipient_id;
+          } else if (config.messenger_type == "tg") {
+            var send_message_url = `https://api.telegram.org/bot${process.env.TG_TOKEN}/sendMessage`;
 
-            //adding token for viber
-            if (msg.messenger_type === "vb") {
-              headers['X-Viber-Auth-Token'] = process.env.VB_TOKEN;
-            }
-
-            //making the request
-            axios
-              .post(send_message_url, message, { headers })
-              .then((res) => {
-                //sending response
-                msg.payload = res;
-                node.send(msg);
-              })
-              .catch((error) => {
-                node.error("Sending message error: " + error);
-              });
+            message["chat_id"] = config.recipient_id;
           }
+
+          //creating request options
+          let headers = {
+            'Content-Type': 'application/json'
+          };
+
+          //adding token for viber
+          if (config.messenger_type == "vb") {
+            headers['X-Viber-Auth-Token'] = process.env.VB_TOKEN;
+          }
+
+          //making the request
+          axios
+            .post(send_message_url, message, { headers })
+            .then((res) => {
+              //sending response
+              msg.payload = res;
+              node.send(msg);
+
+              //change user state
+              axios
+                .post(`${process.env.API_URL}/users?user_id=${config.recipient_id}`, {
+                  "state": config.templateId
+                }, headers)
+                .catch((error) => {
+                  node.error("Setting user state error: " + error);
+                });
+            })
+            .catch((error) => {
+              node.error("Sending message error: " + error);
+            });
         });
-      });
     });
   }
   RED.nodes.registerType("send-message", SendMessageNode);
