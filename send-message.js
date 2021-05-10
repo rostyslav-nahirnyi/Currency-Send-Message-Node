@@ -42,20 +42,43 @@ module.exports = function(RED) {
       //if 'recipient_id' var doesn't exist
       if (!config.recipient_id) return node.error("Please speсify recipient_id.");
 
-      if (config.messenger_type_type == "msg") config.messenger_type = msg[config.messenger_type];
-      if (config.templateId_type == "msg") config.templateId = msg[config.templateId];
-      if (config.language_type == "msg") config.language = msg[config.language];
-      if (config.recipient_id_type == "msg") config.recipient_id = msg[config.recipient_id];
+      //get configs of node
+      let messenger_type = RED.util.evaluateNodeProperty(
+        config.messenger_type,
+        config.messenger_type_type,
+        this,
+        msg
+      );
+      let templateId = RED.util.evaluateNodeProperty(
+        config.templateId,
+        config.templateId_type,
+        this,
+        msg
+      );
+      let language = RED.util.evaluateNodeProperty(
+        config.language,
+        config.language_type,
+        this,
+        msg
+      );
+      let recipient_id = RED.util.evaluateNodeProperty(
+        config.recipient_id,
+        config.recipient_id_type,
+        this,
+        msg
+      );
+
+      
 
       //get message
       axios
-        .get(`${process.env.API_URL}/messages?templateId=${config.templateId}&messenger_type=${config.messenger_type}`)
+        .get(`${process.env.API_URL}/messages?templateId=${templateId}&messenger_type=${messenger_type}`)
         .then((response) => {
           let message = JSON.stringify(response.data.json);
 
           //set template vars
-          if (!response.data.hasOwnProperty(config.language)) return node.error("Template does not support this language.");
-          let message_vars = msg.template_vars ? Object.assign(msg.template_vars, response.data[config.language]) : response.data[config.language];
+          if (!response.data.hasOwnProperty(language)) return node.error("Template does not support this language.");
+          let message_vars = msg.template_vars ? Object.assign(msg.template_vars, response.data[language]) : response.data[language];
 
           for (let key in message_vars) {
             message = message.replace(new RegExp("{{" + key + "}}", "g"), message_vars[key]);
@@ -68,23 +91,23 @@ module.exports = function(RED) {
           //https request to send message
 
           //crating request data
-          if (config.messenger_type == "fb") {
+          if (messenger_type == "fb") {
             var send_message_url = "https://graph.facebook.com/v10.0/me/messages?access_token=" + process.env.FB_PAGE_TOKEN;
 
             message["messaging_type"] = "RESPONSE";
-            message["recipient"] = { "id": config.recipient_id };
-          } else if (config.messenger_type == "vb") {
+            message["recipient"] = { "id": recipient_id };
+          } else if (messenger_type == "vb") {
             var send_message_url = "https://chatapi.viber.com/pa/send_message";
 
             message["sender"] = {
               "name": process.env.VB_BOT_NAME,
               "avatar": process.env.VB_AVATAR_URL
             };
-            message["receiver"] = config.recipient_id;
-          } else if (config.messenger_type == "tg") {
+            message["receiver"] = recipient_id;
+          } else if (messenger_type == "tg") {
             var send_message_url = `https://api.telegram.org/bot${process.env.TG_TOKEN}/sendMessage`;
 
-            message["chat_id"] = config.recipient_id;
+            message["chat_id"] = recipient_id;
           }
 
           //creating request options
@@ -107,9 +130,9 @@ module.exports = function(RED) {
 
               //change user state
               axios
-                .post(`${process.env.API_URL}/users?user_id=${config.recipient_id}`, {
-                  "state": config.templateId
-                }, headers)
+                .put(`${process.env.API_URL}/users?user_id=${recipient_id}`, {
+                    "state": templateId
+                  }, headers)
                 .catch((error) => {
                   node.error("Setting user state error: " + error);
                 });
